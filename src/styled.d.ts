@@ -1,8 +1,7 @@
-import styled from "styled-components"
-import {DefalutTheme} from "styled-component"
+import { DefaultTheme } from "styled-component";
 
-declare module "styled-components"{
-  export interface DefalutTheme {
+declare module "styled-components" {
+  export interface DefaultTheme {
     red: string;
     black: {
       veryDark: string;
@@ -10,8 +9,8 @@ declare module "styled-components"{
       lighter: string;
     };
     white: {
-      darker: string;
       lighter: string;
-    }
+      darker: string;
+    };
   }
 }

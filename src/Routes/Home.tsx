@@ -2,16 +2,18 @@
 //! tv show section만들기
 //! seach 완성
 //! bigMovies 스타일링
-
-
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useQuery } from "react-query";
-import { getMovies, IGetMoivesResult } from "../api";
+import {
+  getNowPlayingMovies,
+  IGetMoivesResult,
+  getNowPopularMovies,
+} from "../api";
 import styled from "styled-components";
 import makeImagePath from "./makeImagePath";
 import { useNavigate, useMatch } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { url } from "inspector";
+import Category from "../Components/Category";
 
 const Wrapper = styled.div`
   background: black;
@@ -35,17 +37,42 @@ const Banner = styled.div<{ bgPhoto: string }>`
 `;
 
 const Title = styled.h2`
-  font-size: 68px;
-  margin-bottom: 20px; ;
+  font-size: 72px;
+  margin-bottom: 20px;
+  text-shadow: 1px 1px 1px black;
 `;
 
 const Overview = styled.p`
-  font-size: 30px;
-  width: 50%;
+  font-size: 16px;
+  line-height: 32px;
+  width: 30%;
+  font-weight: 600;
+  text-shadow: 1px 1px 1px black;
 `;
+const DetailedInfo = styled(motion.div)`
+  width: 10vw;
+  height: 7vh;
+  border-radius: 5px;
+  background-color: ${(props) => props.theme.black.lighter};
+  color: ${(props) => props.theme.white.lighter};
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 15px;
+`;
+
 const Slider = styled.div`
   position: relative;
+  margin-bottom: 180px;
+  padding: 40px;
   top: -100px;
+
+`;
+
+const Categories = styled.h2`
+  font-size: 28px;
+  font-weight: 450;
+  padding-left: 40px;
 `;
 
 const Row = styled(motion.div)`
@@ -145,7 +172,7 @@ const BigMovie = styled(motion.div)`
   left: 0;
   right: 0;
   margin: auto;
-  background-color: ${(props) => props.theme.black.lighter};
+  background-color: black;
   border-radius: 15px;
 `;
 
@@ -160,18 +187,23 @@ const BigCover = styled.img`
 
 const BigTitle = styled.h3`
   color: ${(props) => props.theme.white.lighter};
-  padding: 10px;
+  padding: 40px;
   font-size: 46px;
+  font-weight: 800;
   position: relative;
-  top: -80px;
+  top: -200px;
+  width: 25vw;
+  text-shadow: 1px 1px 1px black;
 `;
 
 const BigOverview = styled.p`
   position: relative;
-
-  padding: 20px;
+  text-shadow: 1px 1px 1px black;
+  padding: 40px;
+  width: 25vw;
+  line-height: 24px;
   color: ${(props) => props.theme.white.lighter};
-  top: -80px;
+  top: -150px;
 `;
 
 function Home() {
@@ -180,8 +212,12 @@ function Home() {
 
   const { data, isLoading } = useQuery<IGetMoivesResult>(
     ["movies", "nowPlaying"],
-    getMovies
+    getNowPlayingMovies
   );
+
+  const popularData = useQuery<IGetMoivesResult>("popularMovies", getNowPopularMovies);
+
+  
 
   const [index, setIndex] = useState(0);
   const [leaving, setLeaving] = useState(false);
@@ -214,6 +250,11 @@ function Home() {
     navigate(`/movies/${movieId}`);
   };
 
+  const movieID = data?.results[0].id;
+  const onDetailClick = (movieID: number) => {
+    navigate(`/movies/${movieID}`);
+  };
+
   const goBackHomt = () => {
     navigate(`/`);
   };
@@ -233,72 +274,15 @@ function Home() {
             onClick={increaseIndex}
             bgPhoto={makeImagePath(data?.results[0].backdrop_path || "")}
           >
-            <Title>{data?.results[0].title}</Title>
+            <Title>{data?.results[0].original_title}</Title>
             <Overview>{data?.results[0].overview}</Overview>
+            <DetailedInfo onClick={() => onDetailClick(movieID as any)}>
+              상세정보
+            </DetailedInfo>
           </Banner>
-          <Slider>
-            {/* onExitComplete = 애니메이션이 끝났을 때 실행됨 */}
-            {/* initail = {false} => 화면이 처음 랜더링 되었을 때 아무것도 실행하지 않음 */}
-            <AnimatePresence initial={false} onExitComplete={toggleLeaving}>
-              <Row
-                variants={rowVaiants}
-                initial="hidden"
-                animate="visible"
-                exit="exit"
-                key={index}
-                transition={{ type: "tween", duration: 1 }}
-              >
-                {data?.results
-                  .slice(1)
-                  .slice(offset * index, offset * index + offset)
-                  .map((movie) => (
-                    <Box
-                      layoutId={movie.id + ""}
-                      onClick={() => {
-                        onBoxClick(movie.id);
-                      }}
-                      key={movie.id}
-                      variants={boxVariants}
-                      initial="normal"
-                      whileHover="hover"
-                      transition={{ type: "tween" }}
-                      bgphoto={makeImagePath(movie.backdrop_path, "w500")}
-                    >
-                      <Info variants={infoVariants}>
-                        <h4>{movie.title}</h4>
-                      </Info>
-                    </Box>
-                  ))}
-              </Row>
-            </AnimatePresence>
-          </Slider>
-          <AnimatePresence>
-            {bigMovieMatch ? (
-              <>
-                <Overlay
-                  onClick={goBackHomt}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                />
-                <BigMovie layoutId={bigMovieMatch.params.movieId + ""}>
-                  {clickedMovie && (
-                    <>
-                      <BigCover
-                        style={{
-                          backgroundImage: `linear-gradient(to top, black, transparent), url(${makeImagePath(
-                            clickedMovie.backdrop_path,
-                            "w500"
-                          )})`,
-                        }}
-                      ></BigCover>
-                      <BigTitle>{clickedMovie.title}</BigTitle>
-                      <BigOverview>{clickedMovie.overview}</BigOverview>
-                    </>
-                  )}
-                </BigMovie>
-              </>
-            ) : null}
-          </AnimatePresence>
+          <Categories>Now playing</Categories>
+          <Category></Category>
+  
         </>
       )}
     </Wrapper>

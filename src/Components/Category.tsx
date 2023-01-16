@@ -1,28 +1,33 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import styled from "styled-components";
 import {
   getNowPlayingMovies,
   IGetMoivesResult,
   getNowPopularMovies,
+  getMovieDetail,
+  IMoveDetailProps,
 } from "../api";
+import axios from "axios";
 import { motion, AnimatePresence } from "framer-motion";
-import { useQuery } from "react-query";
-import { useNavigate, useMatch } from "react-router-dom";
+import { useQuery, useQueries } from "react-query";
+import {
+  useNavigate,
+  useMatch,
+  useParams,
+  useLocation,
+} from "react-router-dom";
 import makeImagePath from "../Routes/makeImagePath";
 import { IoIosArrowBack, IoIosArrowForward } from "react-icons/io";
+import { FcRating } from "react-icons/fc";
+import { AiOutlinePlusCircle } from "react-icons/ai";
 import { IconContext } from "react-icons";
+import { moveEmitHelpers } from "typescript";
 
 const Slider = styled(motion.div)`
   position: relative;
   margin-bottom: 180px;
   padding: 40px;
   top: -20px;
-`;
-
-const Categories = styled.h2`
-  font-size: 28px;
-  font-weight: 450;
-  padding: 40px;
 `;
 
 const Row = styled(motion.div)`
@@ -42,7 +47,6 @@ const Box = styled(motion.div)<{ bgphoto: string }>`
   cursor: pointer;
   background-size: cover;
   background-position: center, center;
-
   // transform-origin : scale이 커지는 방향을 설정할 수 있다
   &:first-child {
     transform-origin: center left;
@@ -52,6 +56,46 @@ const Box = styled(motion.div)<{ bgphoto: string }>`
   }
 `;
 
+const Info = styled(motion.div)`
+  padding: 10px;
+  background-color: ${(props) => props.theme.black.lighter};
+  opacity: 0;
+  position: absolute;
+  width: 100%;
+  height: 100px;
+  bottom: -100px;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+`;
+
+const InfoBox = styled.div`
+  display: flex;
+  flex-direction: column;
+  strong {
+    font-size: 18px;
+    color: ${(props) => props.theme.white.lighter};
+  }
+  span {
+    font-size: 12px;
+    padding-bottom: 10px;
+    color: ${(props) => props.theme.white.lighter};
+    display: flex;
+    align-items: center;
+  }
+  p {
+    font-size: 12px;
+    color: ${(props) => props.theme.white.lighter};
+    display: flex;
+    align-items: center;
+    span {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding-left: 10px;
+    }
+  }
+`;
 const LeftArrow = styled(motion.div)`
   position: absolute;
   background-color: rgba(0, 0, 0, 0.5);
@@ -77,7 +121,6 @@ const RightArrow = styled(motion.div)`
   justify-content: center;
   align-items: center;
   opacity: 0;
-
 `;
 
 const boxVariants = {
@@ -87,6 +130,7 @@ const boxVariants = {
   hover: {
     scale: 1.3,
     y: -80,
+    borderRadius: "5px",
     transition: {
       delay: 0.5,
       duaration: 0.1,
@@ -98,6 +142,7 @@ const boxVariants = {
 const infoVariants = {
   hover: {
     opacity: 1,
+    borderRadius: "0 0 5px 5px",
     transition: {
       delay: 0.5,
       duaration: 0.1,
@@ -105,18 +150,7 @@ const infoVariants = {
     },
   },
 };
-const Info = styled(motion.div)`
-  padding: 10px;
-  background-color: ${(props) => props.theme.black.lighter};
-  opacity: 0;
-  position: absolute;
-  width: 100%;
-  bottom: 0;
-  h4 {
-    text-align: center;
-    font-size: 18px;
-  }
-`;
+
 const Overlay = styled(motion.div)`
   background-color: rgba(0, 0, 0, 0.5);
   width: 100%;
@@ -153,27 +187,97 @@ const BigTitle = styled.h3`
   font-size: 46px;
   font-weight: 800;
   position: relative;
-  top: -200px;
+  top: -140px;
   width: 25vw;
   text-shadow: 1px 1px 1px black;
 `;
 
+{/* <BigOverview>
+<div>
+  <p>{detail?.runtime}분</p>
+  <p>{detail?.vote_average.toFixed(1)}</p>
+  <div>
+    {detail?.genres.map((item) => (
+      <span key={item.id}>{item.name}</span>
+    ))}
+  </div>
+</div>
+</BigOverview> */}
 const BigOverview = styled.p`
   position: relative;
   text-shadow: 1px 1px 1px black;
   padding: 40px;
-  width: 25vw;
-  line-height: 24px;
+  width: 40vw;
+  height: 220px;
+  line-height: 26px;
   color: ${(props) => props.theme.white.lighter};
   top: -150px;
+  display: flex;
+
+  div {
+    display: flex;
+    flex-direction: column;
+    
+    p{
+      margin-bottom: 10px;
+      
+    }
+    div{
+      margin-top: 25px;
+      display: flex;
+      flex-direction: row;
+      font-size: 28px;
+      span{
+        margin-right: 15px;
+      }
+    }
+  }
 `;
+
+const BigDef = styled.p`
+  height: 100px;
+`;
+
+const arrowVariants = {
+  start: { opacity: 0 },
+  hover: {
+    opacity: 1,
+    tansition: { duration: 0.5 },
+  },
+};
+
+const rowVaiants = {
+  hidden: {
+    x: window.outerWidth + 5,
+  },
+  visible: {
+    x: 0,
+  },
+  exit: {
+    x: -window.outerWidth,
+  },
+};
+
+const rowLeftVaiants = {
+  hidden: {
+    x: -window.outerWidth,
+  },
+  visible: {
+    x: 0,
+  },
+  exit: {
+    x: window.outerWidth - 5,
+  },
+};
+
 function Category() {
   const [leaving, setLeaving] = useState(false);
   const [turn, setTurn] = useState(true);
-
   const [index, setIndex] = useState(0);
+
   const offset = 6;
   const navigate = useNavigate();
+
   const { data, isLoading } = useQuery<IGetMoivesResult>(
     ["movies", "nowPlaying"],
     getNowPlayingMovies
@@ -219,6 +323,7 @@ function Category() {
   };
 
   const bigMovieMatch = useMatch("/movies/:movieId");
+
   const goBackHomt = () => {
     navigate(`/`);
   };
@@ -227,41 +332,53 @@ function Category() {
     (movie) => movie.id + "" === bigMovieMatch?.params.movieId
   );
 
-  const arrowVariants = {
-    start: { opacity: 0 },
-    hover: {
-      opacity: 1,
-      tansition: { duration: 0.5 },
-    },
-  };
+  // const getDetail = useQuery(["detail"], (filmId) =>
+  //   axios
+  //     .get(
+  //       `https://api.themoviedb.org/3/movie/${filmId}?api_key=83c3e98ddabce65b906b3e5b39f39683`
+  //     )
+  //     .then((res) => {
+  //       setGenres(res.data.genres);
+  //       // console.log(genres)
+  //     })
+  // );
+  // console.log(data?.results.find((movie) => movie.id));
 
-  const rowVaiants = {
-    hidden: {
-      x: window.outerWidth + 5,
-    },
-    visible: {
-      x: 0,
-    },
-    exit: {
-      x: -window.outerWidth,
-    },
-  };
+  // const movieDetail = useQuery("detail", (movieId)=>GetMovieDetail)
+  interface IGenres {
+    id: number;
+    name: string;
+  }
+  interface IDetailProps {
+    id: number;
+    name: string;
+    runtime: number;
+    genres: IGenres[];
+    vote_average: number;
+  }
+  const [detail, setDetail] = useState<IDetailProps>();
 
-  const rowLeftVaiants = {
-    hidden: {
-      x: -window.outerWidth,
-    },
-    visible: {
-      x: 0,
-    },
-    exit: {
-      x: window.outerWidth - 5,
-    },
+  const location = useLocation();
+
+  const filmId = Number(location.pathname.slice(8));
+
+  const getDetail = async () => {
+    await axios
+      .get(
+        `https://api.themoviedb.org/3/movie/${filmId}?api_key=83c3e98ddabce65b906b3e5b39f39683`
+      )
+      .then((res) => {
+        setDetail(res.data);
+      });
   };
+  useEffect(() => {
+    getDetail();
+  }, [location]);
 
   return (
     <Slider whileHover="hover">
       <AnimatePresence initial={false} onExitComplete={toggleLeaving}>
+        {/* 
         <LeftArrow
           variants={arrowVariants}
           initial="start"
@@ -279,10 +396,14 @@ function Category() {
           whileHover="hover"
           onClick={increaseIndex}
         >
-          <IconContext.Provider value={{ size: "4em" }}>
+          <IconContext.Provider
+            value={{
+              size: "4em",
+            }}
+          >
             <IoIosArrowForward />
           </IconContext.Provider>
-        </RightArrow>
+        </RightArrow> */}
 
         <Row
           variants={turn ? rowVaiants : rowLeftVaiants}
@@ -309,7 +430,15 @@ function Category() {
                   bgphoto={makeImagePath(movie.backdrop_path, "w500")}
                 >
                   <Info variants={infoVariants}>
-                    <h4>{movie.title}</h4>
+                    <IconContext.Provider
+                      value={{ color: "white", size: "0.5em" }}
+                    >
+                      <AiOutlinePlusCircle></AiOutlinePlusCircle>
+                    </IconContext.Provider>
+                    <InfoBox>
+                      <strong>{movie.title}</strong>
+                      <span>{movie.release_date.slice(0, 4)}</span>
+                    </InfoBox>
                   </Info>
                 </Box>
               </div>
@@ -337,6 +466,17 @@ function Category() {
                   ></BigCover>
                   <BigTitle>{clickedMovie.title}</BigTitle>
                   <BigOverview>{clickedMovie.overview}</BigOverview>
+                  <BigOverview>
+                    <div>
+                      <p>{detail?.runtime}분</p>
+                      <p>⭐{detail?.vote_average.toFixed(1)}</p>
+                      <div>
+                        {detail?.genres.map((item) => (
+                          <span key={item.id}>{item.name}</span>
+                        ))}
+                      </div>
+                    </div>
+                  </BigOverview>
                 </>
               )}
             </BigMovie>

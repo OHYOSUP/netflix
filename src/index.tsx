@@ -69,8 +69,11 @@ body {
   color: ${props=> props.theme.white.darker};
   background-color: black;
   line-height: 1.2;
-  
 }
+body::-webkit-scrollbar {
+  display: none;
+}
+
 a {
   text-decoration:none;
   color:inherit;

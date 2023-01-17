@@ -58,12 +58,12 @@ const Box = styled(motion.div)<{ bgphoto: string }>`
 
 const Info = styled(motion.div)`
   padding: 10px;
-  background-color: ${(props) => props.theme.black.lighter};
+  background-color: ${(props) => props.theme.black.darker};
   opacity: 0;
   position: absolute;
   width: 100%;
-  height: 100px;
-  bottom: -100px;
+  height: 80px;
+  bottom: -70px;
   display: flex;
   justify-content: space-around;
   align-items: center;
@@ -72,28 +72,22 @@ const Info = styled(motion.div)`
 const InfoBox = styled.div`
   display: flex;
   flex-direction: column;
-  strong {
+  justify-content: center;
+  align-items: center;
+
+  p {
     font-size: 18px;
     color: ${(props) => props.theme.white.lighter};
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    text-shadow: 0.3px 0.3px 0.3px black;
   }
   span {
-    font-size: 12px;
-    padding-bottom: 10px;
     color: ${(props) => props.theme.white.lighter};
-    display: flex;
-    align-items: center;
-  }
-  p {
     font-size: 12px;
-    color: ${(props) => props.theme.white.lighter};
-    display: flex;
-    align-items: center;
-    span {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding-left: 10px;
-    }
+    padding-top: 15px;
+    text-shadow: 0.3px 0.3px 0.3px black;
   }
 `;
 const LeftArrow = styled(motion.div)`
@@ -157,19 +151,20 @@ const Overlay = styled(motion.div)`
   height: 100%;
   position: fixed;
   top: 0;
+  left: 0;
   opacity: 0;
 `;
 const BigMovie = styled(motion.div)`
   position: fixed;
   width: 40vw;
-  height: 80vh;
-  top: 0;
+  heigth: 40vh;
+  top: 100px;
   bottom: 0;
   left: 0;
   right: 0;
-  margin: auto;
-  background-color: black;
+  margin: 0 auto;
   border-radius: 15px;
+  background-color: ${(props) => props.theme.black.darker};
 `;
 
 const BigCover = styled.img`
@@ -177,7 +172,7 @@ const BigCover = styled.img`
   height: 400px;
   background-size: cover;
   background-position: center center;
-  border-radius: 15px;
+  border: 0;
   overflow: hidden;
 `;
 
@@ -190,52 +185,39 @@ const BigTitle = styled.h3`
   top: -140px;
   width: 25vw;
   text-shadow: 1px 1px 1px black;
+  color: ${(props) => props.theme.white.darker};
 `;
 
-{/* <BigOverview>
-<div>
-  <p>{detail?.runtime}분</p>
-  <p>{detail?.vote_average.toFixed(1)}</p>
-  <div>
-    {detail?.genres.map((item) => (
-      <span key={item.id}>{item.name}</span>
-    ))}
-  </div>
-</div>
-</BigOverview> */}
-const BigOverview = styled.p`
+const BigOverview = styled.div`
   position: relative;
   text-shadow: 1px 1px 1px black;
   padding: 40px;
   width: 40vw;
   height: 220px;
   line-height: 26px;
-  color: ${(props) => props.theme.white.lighter};
+  color: ${(props) => props.theme.white.darker};
   top: -150px;
   display: flex;
+  flex-direction: column;
+  text-shadow: 0.3px 0.3px 0.3px white;
+
+  p {
+    width: 5vw;
+    display: flex;
+    justify-content: space-between;
+    padding-top: 20px;
+    text-shadow: 0.3px 0.3px 0.3px white;
+  }
 
   div {
+    width: 20vw;
     display: flex;
-    flex-direction: column;
-    
-    p{
-      margin-bottom: 10px;
-      
-    }
-    div{
-      margin-top: 25px;
-      display: flex;
-      flex-direction: row;
-      font-size: 28px;
-      span{
-        margin-right: 15px;
-      }
-    }
+    align-items: center;
+    justify-content: space-between;
+    padding-top: 20px;
+    color: ${(props) => props.theme.white.darker};
+    text-shadow: 0.3px 0.3px 0.3px white;
   }
-`;
-
-const BigDef = styled.p`
-  height: 100px;
 `;
 
 const arrowVariants = {
@@ -274,7 +256,8 @@ function Category() {
   const [leaving, setLeaving] = useState(false);
   const [turn, setTurn] = useState(true);
   const [index, setIndex] = useState(0);
-
+  const bigMovieMatch = useMatch("/movies/:movieId");
+  const filmId = Number(bigMovieMatch?.params.movieId);
   const offset = 6;
   const navigate = useNavigate();
 
@@ -282,6 +265,15 @@ function Category() {
     ["movies", "nowPlaying"],
     getNowPlayingMovies
   );
+  const [movieDetail, setMovieDetail] = useState<IMoveDetailProps>();
+
+  const {data: getMovieDetail ,refetch} = useQuery(["detail", filmId], async () => {
+    return await axios
+      .get(
+        `https://api.themoviedb.org/3/movie/${filmId}?api_key=83c3e98ddabce65b906b3e5b39f39683`
+      ).then(res=>setMovieDetail(res.data))
+      
+  }, {enabled: false});
 
   const increaseIndex = () => {
     //? increaseIndex함수를 연속으로 실행시켰을 때 두 Row컴포넌트
@@ -322,8 +314,6 @@ function Category() {
     navigate(`/movies/${movieId}`);
   };
 
-  const bigMovieMatch = useMatch("/movies/:movieId");
-
   const goBackHomt = () => {
     navigate(`/`);
   };
@@ -332,19 +322,6 @@ function Category() {
     (movie) => movie.id + "" === bigMovieMatch?.params.movieId
   );
 
-  // const getDetail = useQuery(["detail"], (filmId) =>
-  //   axios
-  //     .get(
-  //       `https://api.themoviedb.org/3/movie/${filmId}?api_key=83c3e98ddabce65b906b3e5b39f39683`
-  //     )
-  //     .then((res) => {
-  //       setGenres(res.data.genres);
-  //       // console.log(genres)
-  //     })
-  // );
-  // console.log(data?.results.find((movie) => movie.id));
-
-  // const movieDetail = useQuery("detail", (movieId)=>GetMovieDetail)
   interface IGenres {
     id: number;
     name: string;
@@ -356,45 +333,31 @@ function Category() {
     genres: IGenres[];
     vote_average: number;
   }
-  const [detail, setDetail] = useState<IDetailProps>();
 
+  const [detail, setDetail] = useState<IDetailProps>();
   const location = useLocation();
 
-  const filmId = Number(location.pathname.slice(8));
 
-  const getDetail = async () => {
-    await axios
-      .get(
-        `https://api.themoviedb.org/3/movie/${filmId}?api_key=83c3e98ddabce65b906b3e5b39f39683`
-      )
-      .then((res) => {
-        setDetail(res.data);
-      });
-  };
-  useEffect(() => {
-    getDetail();
-  }, [location]);
 
   return (
     <Slider whileHover="hover">
       <AnimatePresence initial={false} onExitComplete={toggleLeaving}>
-        {/* 
-        <LeftArrow
+        {/* <LeftArrow
           variants={arrowVariants}
           initial="start"
           whileHover="hover"
-          onClick={decreaseIndex}
+          onClick={increaseIndex}
         >
           <IconContext.Provider value={{ size: "4em" }}>
             <IoIosArrowBack />
           </IconContext.Provider>
-        </LeftArrow>
+        </LeftArrow> */}
 
         <RightArrow
           initial="start"
           variants={arrowVariants}
           whileHover="hover"
-          onClick={increaseIndex}
+          onClick={decreaseIndex}
         >
           <IconContext.Provider
             value={{
@@ -403,7 +366,7 @@ function Category() {
           >
             <IoIosArrowForward />
           </IconContext.Provider>
-        </RightArrow> */}
+        </RightArrow>
 
         <Row
           variants={turn ? rowVaiants : rowLeftVaiants}
@@ -420,8 +383,9 @@ function Category() {
               <div key={movie.id}>
                 <Box
                   layoutId={movie.id + ""}
-                  onClick={() => {
-                    onBoxClick(movie.id);
+                  onClick={async () => {
+                    await onBoxClick(movie.id);
+                    refetch()
                   }}
                   variants={boxVariants}
                   initial="normal"
@@ -430,13 +394,8 @@ function Category() {
                   bgphoto={makeImagePath(movie.backdrop_path, "w500")}
                 >
                   <Info variants={infoVariants}>
-                    <IconContext.Provider
-                      value={{ color: "white", size: "0.5em" }}
-                    >
-                      <AiOutlinePlusCircle></AiOutlinePlusCircle>
-                    </IconContext.Provider>
                     <InfoBox>
-                      <strong>{movie.title}</strong>
+                      <p>{movie.title}</p>
                       <span>{movie.release_date.slice(0, 4)}</span>
                     </InfoBox>
                   </Info>
@@ -465,16 +424,21 @@ function Category() {
                     }}
                   ></BigCover>
                   <BigTitle>{clickedMovie.title}</BigTitle>
-                  <BigOverview>{clickedMovie.overview}</BigOverview>
                   <BigOverview>
+                    {clickedMovie.overview}
+
+                    <p>
+                      <span>⭐{movieDetail?.vote_average.toFixed(1)}</span>
+                      <span>{movieDetail?.runtime}분</span>
+                    </p>
                     <div>
-                      <p>{detail?.runtime}분</p>
-                      <p>⭐{detail?.vote_average.toFixed(1)}</p>
-                      <div>
-                        {detail?.genres.map((item) => (
-                          <span key={item.id}>{item.name}</span>
-                        ))}
-                      </div>
+                      {/* {detail?.genres.map((item) => (
+                        <span key={item.id}>{item.name}</span>
+                      ))} */}
+                      {movieDetail?.genres.map(item=>(
+                        <span key={item.id}>{item.name}</span>
+                        
+                      ))}
                     </div>
                   </BigOverview>
                 </>

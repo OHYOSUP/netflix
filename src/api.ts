@@ -91,10 +91,14 @@ export function getMovieDetail() {
   ).then((res) => res.json());
 }
 
-
-
 export function getNowPopularMovies() {
   return fetch(
     `${BASE_PATH}movie/popular?api_key=${API_KEY}&language=ko-KR`
   ).then((res) => res.json());
+}
+
+export function getLatestMovies() {
+  return fetch(`${BASE_PATH}movie/latest?api_key=${API_KEY}`).then((res) =>
+    res.json()
+  );
 }

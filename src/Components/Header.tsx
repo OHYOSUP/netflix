@@ -108,7 +108,7 @@ function Header() {
   const inputAnimation = useAnimation();
   const navAnimation = useAnimation();
   const { scrollY } = useScroll();
-  const navigate = useNavigate()
+  const navigate = useNavigate();
 
   useEffect(() => {
     scrollY.onChange(() => {
@@ -122,11 +122,11 @@ function Header() {
 
   const { register, handleSubmit } = useForm<IForm>();
 
-  const onValid = (data : IForm)=>{
-    console.log(data)
+  const onValid = (data: IForm) => {
+    console.log(data);
 
-    navigate(`/search?keyword=${data.keyword}`)
-  }
+    navigate(`/search?keyword=${data.keyword}`);
+  };
 
   const toggleSearchOpen = () => {
     if (searchOpen) {

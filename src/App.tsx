@@ -8,7 +8,7 @@ import Tv from "./Routes/Tv";
 function App() {
   return (
     <BrowserRouter>
-    <Header />
+      <Header />
       <Routes>
         <Route path="/" element={<Home />}></Route>
         <Route path="/movies/:category/:movieId" element={<Home />}></Route>

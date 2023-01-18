@@ -3,10 +3,11 @@ import styled from "styled-components";
 import {
   getNowPlayingMovies,
   IGetMoivesResult,
-  getNowPopularMovies,
-  getMovieDetail,
   IMoveDetailProps,
   Types,
+  BASE_PATH,
+  API_KEY,
+  ISimilar,
 } from "../api";
 import axios from "axios";
 import { motion, AnimatePresence, useScroll } from "framer-motion";
@@ -15,7 +16,6 @@ import { useNavigate, useMatch } from "react-router-dom";
 import makeImagePath from "../Routes/makeImagePath";
 import { IoIosArrowForward, IoIosArrowBack } from "react-icons/io";
 import { IconContext } from "react-icons";
-import LatestPlaying from "./LatestPlaying";
 
 const Slider = styled(motion.div)`
   position: relative;
@@ -51,7 +51,7 @@ const Box = styled(motion.div)<{ bgphoto: string }>`
 
 const Info = styled(motion.div)`
   padding: 10px;
-  background-color: ${(props) => props.theme.black.darker};
+  background-color: rgba(0, 0, 0, 0);
   opacity: 0;
   position: absolute;
   width: 100%;
@@ -111,6 +111,7 @@ const RightArrow = styled(motion.div)`
 const boxVariants = {
   normal: {
     scale: 1,
+    borderRadius: "10px 10px 0 0",
   },
   hover: {
     scale: 1.3,
@@ -123,10 +124,38 @@ const boxVariants = {
     },
   },
 };
-
+const SimilarBoxVariants = {
+  normal: {
+    scale: 1,
+    borderRadius: "5px 5px 5px 5px",
+  },
+  hover: {
+    scale: 1.3,
+    y: -30,
+    transition: {
+      delay: 0.5,
+      duration: 0.1,
+      type: "tween",
+    },
+  },
+};
 const infoVariants = {
   hover: {
     opacity: 1,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    borderRadius: "0 0 5px 5px",
+    transition: {
+      delay: 0.5,
+      duaration: 0.1,
+      type: "tween",
+    },
+  },
+};
+
+const similarInfoVariants = {
+  hover: {
+    opacity: 1,
+    backgroundColor: "rgba(0,0,0,0.5)",
     borderRadius: "0 0 5px 5px",
     transition: {
       delay: 0.5,
@@ -147,21 +176,27 @@ const Overlay = styled(motion.div)`
 `;
 const BigMovie = styled(motion.div)<{ scrollY: number }>`
   position: absolute;
-  width: 50vw;
-  height: 85vh;
+  width: 40vw;
+  height: 80vh;
   top: ${(props) => props.scrollY + 75}px;
   left: 0;
   right: 0;
   z-index: 99;
   margin: 0 auto;
-  border-radius: 15px;
-  overflow: hidden;
+  border-radius: 10px 10px 0 0;
+  
+  overflow-x: hidden;
+  ::-webkit-scrollbar {
+    display: none;
+  }
   background-color: ${(props) => props.theme.black.darker};
 `;
 
 const BigCover = styled.div<{ bgPhoto: string }>`
   width: 100%;
+  border-radius: 5px 5px 0 0;
   height: 450px;
+  border-top: 15px;
   position: relative;
   background-size: cover;
   background-position: center center;
@@ -188,24 +223,40 @@ const BigOverview = styled.div`
   top: -150px;
   flex-direction: column;
   text-shadow: 0.3px 0.3px 0.3px white;
-
   p {
-    width: 5vw;
-    display: flex;
-    justify-content: space-between;
-    padding-top: 20px;
+    padding-top: 30px;
     text-shadow: 0.3px 0.3px 0.3px white;
+    span {
+      padding: 0 20px 0 0;
+    }
   }
+`;
+const SimilarBox = styled.div`
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  width: 100%;
+  gap: 10px 10px;
+  padding-top: 10vh;
+  background-color: linear-gradient(rgba(0, 0, 0, 0), rgba(0, 0, 0, 1));
+`;
 
-  div {
-    width: 20vw;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding-top: 20px;
-    color: ${(props) => props.theme.white.darker};
-    text-shadow: 0.3px 0.3px 0.3px white;
-  }
+const Similar = styled(motion.div)<{ bgphoto: string }>`
+  width: 250px;
+  height: 160px;
+  background-image: url(${(props) => props.bgphoto});
+  background-size: cover;
+  border-radius: 15px;
+`;
+const SimilarInfo = styled(motion.div)`
+  padding: 10px;
+  opacity: 0;
+  background-color: rgba(0, 0, 0, 0);
+  position: absolute;
+  width: 100%;
+  bottom: 0;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
 `;
 
 const arrowVariants = {
@@ -237,9 +288,7 @@ function Category({ type }: { type: Types }) {
     ["detail", filmId],
     async () => {
       return await axios
-        .get(
-          `https://api.themoviedb.org/3/movie/${filmId}?api_key=83c3e98ddabce65b906b3e5b39f39683`
-        )
+        .get(`${BASE_PATH}movie/${filmId}?api_key=${API_KEY}`)
         .then((res) => setMovieDetail(res.data));
     },
     { enabled: false }
@@ -332,7 +381,22 @@ function Category({ type }: { type: Types }) {
   const clickedMovie = data?.results.find(
     (movie) => movie.id + "" === bigMovieMatch?.params.movieId
   );
-  
+
+  // function getSimilartMovies(type: Types) {
+  //   return fetch(`${BASE_PATH}movie/${""}/${type}?api_key=${API_KEY}`).then((res) =>
+  //     res.json()
+  //   );
+  // }
+  const [getSimilar, setGetSilmilar] = useState<ISimilar>();
+  const { data: getSimilarMoive, refetch: similarRefetch } = useQuery(
+    ["similar", filmId],
+    async () => {
+      return await axios
+        .get(`${BASE_PATH}movie/${filmId}/similar?api_key=${API_KEY}`)
+        .then((res) => setGetSilmilar(res.data));
+    },
+    { enabled: false }
+  );
 
   return (
     <>
@@ -361,6 +425,7 @@ function Category({ type }: { type: Types }) {
                   onClick={async () => {
                     await onBoxClick({ movieId: movie.id, category: type });
                     refetch();
+                    similarRefetch();
                   }}
                   variants={boxVariants}
                   initial="normal"
@@ -430,11 +495,27 @@ function Category({ type }: { type: Types }) {
                       <span>⭐{movieDetail?.vote_average.toFixed(1)}</span>
                       <span>{movieDetail?.runtime}min</span>
                     </p>
-                    <div>
+                    <p>
                       {movieDetail?.genres.map((item) => (
                         <span key={item.id}>{item.name}</span>
                       ))}
-                    </div>
+                    </p>
+                    <SimilarBox>
+                      {getSimilar?.results.map((item) => (
+                        <Similar
+                          variants={SimilarBoxVariants}
+                          initial="normal"
+                          whileHover="hover"
+                          transition={{ type: "tween" }}
+                          bgphoto={makeImagePath(item.backdrop_path, "w500")}
+                          key={"similar" + String(item.id)}
+                        >
+                          <SimilarInfo variants={similarInfoVariants}>
+                            {item.title}
+                          </SimilarInfo>
+                        </Similar>
+                      ))}
+                    </SimilarBox>
                   </BigOverview>
                 </>
               )}

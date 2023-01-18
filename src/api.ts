@@ -1,6 +1,13 @@
-const API_KEY = "83c3e98ddabce65b906b3e5b39f39683";
+export const API_KEY = "83c3e98ddabce65b906b3e5b39f39683";
 const BASE_PATH = "https://api.themoviedb.org/3/";
-const movieId = null;
+
+export enum Types {
+  "popular" = "popular",
+  "latest" = "latest",
+  "now_playing" = "now_playing",
+  "top_rated" = "top_rated"
+}
+
 interface IMoive {
   id: number;
   original_title: string;
@@ -24,9 +31,9 @@ export interface IGetMoivesResult {
   total_results: number;
 }
 
-export function getNowPlayingMovies() {
+export function getNowPlayingMovies(type: Types) {
   return fetch(
-    `${BASE_PATH}movie/now_playing?api_key=${API_KEY}&language=ko-KR`
+    `${BASE_PATH}movie/${type}?api_key=${API_KEY}`
   ).then((res) => res.json());
 }
 
@@ -91,14 +98,44 @@ export function getMovieDetail() {
   ).then((res) => res.json());
 }
 
-export function getNowPopularMovies() {
+export function getNowPopularMovies(type: Types) {
   return fetch(
-    `${BASE_PATH}movie/popular?api_key=${API_KEY}&language=ko-KR`
+    `${BASE_PATH}movie/${type}?api_key=${API_KEY}&language=ko-KR`
   ).then((res) => res.json());
 }
 
-export function getLatestMovies() {
-  return fetch(`${BASE_PATH}movie/latest?api_key=${API_KEY}`).then((res) =>
+
+interface IPopular{
+  id: number;
+  original_title: string;
+  overview:string;
+  release_date: string;
+  vote_average: number;
+}
+export interface IMoivePopular {
+  page: number;
+  results: [
+    {
+      adult: boolean;
+      backdrop_path: string;
+      genre_ids: number[];
+      id: number;
+      original_language: string;
+      original_title: string;
+      overview: string;
+      popularity: number;
+      poster_path: string;
+      release_date: string;
+      title: string;
+      video: boolean;
+      vote_average: number;
+      vote_count: number;
+    }
+  ];
+}
+
+export function getLatestMovies(type: Types) {
+  return fetch(`${BASE_PATH}movie/${type}?api_key=${API_KEY}`).then((res) =>
     res.json()
   );
 }

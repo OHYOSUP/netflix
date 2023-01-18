@@ -8,12 +8,15 @@ import {
   getNowPlayingMovies,
   IGetMoivesResult,
   getNowPopularMovies,
+  getLatestMovies,
+  Types
 } from "../api";
 import styled from "styled-components";
 import makeImagePath from "./makeImagePath";
 import { useNavigate, useMatch } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import Category from "../Components/Category";
+import LatestPlaying from "../Components/LatestPlaying";
 
 const Wrapper = styled.div`
   background: black;
@@ -66,7 +69,6 @@ const Slider = styled.div`
   margin-bottom: 180px;
   padding: 40px;
   top: -100px;
-
 `;
 
 const Categories = styled.h2`
@@ -128,141 +130,26 @@ const Info = styled(motion.div)`
 
 //? whileHover prop을 쓰지 않고 BoxVariants를 따로 지정한 이유 => whileHover에 delay를 걸면 마우스를 올렸을 때 2초, 마우스를 치웠을 때 2초씩 딜레이가 발생한다. 내가 하고싶은 건 마우스를 올렸을 때 스케일이 변화하는 delay만 2초가 발생하게 하고싶기 때문에 variants를 만들어 hover 내에서 transition - delay를 걸어서 마우스를 치웠을 때에는 바로 원래 스케일로 돌아가도록 한다.
 //! variants를 활용하면 hover-transition만 제어할 수 있다.
-const boxVariants = {
-  normal: {
-    scale: 1,
-  },
-  hover: {
-    scale: 1.3,
-    y: -80,
-    transition: {
-      delay: 0.5,
-      duaration: 0.1,
-      type: "tween",
-    },
-  },
-};
-
-const infoVariants = {
-  hover: {
-    opacity: 1,
-    transition: {
-      delay: 0.5,
-      duaration: 0.1,
-      type: "tween",
-    },
-  },
-};
-
-const Overlay = styled(motion.div)`
-  background-color: rgba(0, 0, 0, 0.5);
-  width: 100%;
-  height: 100%;
-  position: fixed;
-  top: 0;
-  opacity: 0;
-`;
-
-const BigMovie = styled(motion.div)`
-  position: fixed;
-  width: 40vw;
-  height: 80vh;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  margin: auto;
-  background-color: black;
-  border-radius: 15px;
-`;
-
-const BigCover = styled.img`
-  width: 100%;
-  height: 400px;
-  background-size: cover;
-  background-position: center center;
-  border-radius: 15px;
-  overflow: hidden;
-`;
-
-const BigTitle = styled.h3`
-  color: ${(props) => props.theme.white.lighter};
-  padding: 40px;
-  font-size: 46px;
-  font-weight: 800;
-  position: relative;
-  top: -200px;
-  width: 25vw;
-  text-shadow: 1px 1px 1px black;
-`;
-
-const BigOverview = styled.p`
-  position: relative;
-  text-shadow: 1px 1px 1px black;
-  padding: 40px;
-  width: 25vw;
-  line-height: 24px;
-  color: ${(props) => props.theme.white.lighter};
-  top: -150px;
-`;
 
 function Home() {
   const navigate = useNavigate();
-  const bigMovieMatch = useMatch("/movies/:movieId");
-
+  const bigMovieMatch = useMatch(`/movies/${Types.now_playing}/:movieId`);
   const { data, isLoading } = useQuery<IGetMoivesResult>(
     ["movies", "nowPlaying"],
-    getNowPlayingMovies
+    ()=> getNowPlayingMovies(Types.now_playing)
   );
-
-  const popularData = useQuery<IGetMoivesResult>("popularMovies", getNowPopularMovies);
-
-  
-
   const [index, setIndex] = useState(0);
   const [leaving, setLeaving] = useState(false);
-
-  const increaseIndex = () => {
-    //? increaseIndex함수를 연속으로 실행시켰을 때 두 Row컴포넌트
-    //? 사이가 벌어지는 현상을 방지
-    // 처음 클릭했을 때 leaving이 false니까 setLeaving만 true로
-    // 바꿔주고 index만 증가시키는데 그 다음부터는 leaving이
-    // true니까 아무것도 return하지 않는다.
-    if (leaving) return;
-    if (data) {
-      toggleLeaving();
-      // 불러온 데이터의 length
-      const totalMovie = data?.results.length - 1;
-      // 한 페이지에 offset만큼 영화를 불러왔을 떄 페이지 수
-      const maxIndex = Math.floor(totalMovie / offset) - 1;
-      // 만약 index가 maxIndex만큼 증가했을 때 다시 초기페이지로
-      // 돌아갈 로직
-      setIndex((prev) => (prev === maxIndex ? 0 : prev + 1));
-    }
-  };
 
   const toggleLeaving = () => {
     setLeaving((prev) => !prev);
   };
   const offset = 6;
 
-  const onBoxClick = (movieId: number) => {
-    navigate(`/movies/${movieId}`);
-  };
-
   const movieID = data?.results[0].id;
   const onDetailClick = (movieID: number) => {
-    navigate(`/movies/${movieID}`);
+    navigate(`/movies/${Types.now_playing}/${movieID}`);
   };
-
-  const goBackHomt = () => {
-    navigate(`/`);
-  };
-
-  // 클릭한 영화의 데이터 찾기
-  const clickedMovie = data?.results.find(
-    (movie) => movie.id + "" === bigMovieMatch?.params.movieId
-  );
 
   return (
     <Wrapper>
@@ -270,19 +157,22 @@ function Home() {
         <Loader>Loading...</Loader>
       ) : (
         <>
-          <Banner
-            onClick={increaseIndex}
+          <Banner            
             bgPhoto={makeImagePath(data?.results[0].backdrop_path || "")}
           >
             <Title>{data?.results[0].original_title}</Title>
             <Overview>{data?.results[0].overview}</Overview>
-            <DetailedInfo onClick={() => onDetailClick(movieID as any)}>
+            <DetailedInfo onClick={() => onDetailClick(movieID as number)}>
               상세정보
             </DetailedInfo>
           </Banner>
           <Categories>Now playing</Categories>
-          <Category></Category>
-  
+          <Category type = {Types.now_playing}></Category>
+           <Categories>지금 뜨는 콘텐츠</Categories>
+          <Category type = {Types.popular}></Category>
+          <Categories>TOP RATED</Categories>
+          <Category type = {Types.top_rated}></Category>
+
         </>
       )}
     </Wrapper>

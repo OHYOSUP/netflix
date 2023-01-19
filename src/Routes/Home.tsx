@@ -1,5 +1,5 @@
 import { useQuery } from "react-query";
-import { getNowPlayingMovies, IGetMoivesResult, Types } from "../api";
+import { getNowPlayingMovies, IGetMoivesResult, Types} from "../api";
 import styled from "styled-components";
 import makeImagePath from "./makeImagePath";
 import { useNavigate } from "react-router-dom";

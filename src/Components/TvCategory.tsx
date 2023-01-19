@@ -1,22 +1,23 @@
-import { useState, useEffect } from "react";
-import styled from "styled-components";
+import { useState } from "react";
+import { useQuery } from "react-query";
 import {
-  getNowPlayingMovies,
-  IGetMoivesResult,
-  IMoveDetailProps,
-  Types,
+  getTvOnTheAir,
+  TvTypes,
+  ITvOnTheAirProps,
   BASE_PATH,
   API_KEY,
-  ISimilar,
+  ITvDetailProps,
+  ITvSimilarProps,
 } from "../api";
-import axios from "axios";
+import styled from "styled-components";
 import { motion, AnimatePresence, useScroll } from "framer-motion";
-import { useQuery, useQueries } from "react-query";
-import { useNavigate, useMatch } from "react-router-dom";
 import makeImagePath from "../Routes/makeImagePath";
+import { getWindowDimensions, useWindowDimensions } from "./Utils";
+import { useMatch, useNavigate } from "react-router-dom";
+import axios from "axios";
 import { IoIosArrowForward, IoIosArrowBack } from "react-icons/io";
 import { IconContext } from "react-icons";
-import { getWindowDimensions, useWindowDimensions } from "./Utils";
+
 const Slider = styled(motion.div)`
   position: relative;
   margin-bottom: 180px;
@@ -32,12 +33,17 @@ const Row = styled(motion.div)`
   position: absolute;
   width: 100%;
 `;
-
+const BoxWrapper = styled.div`
+  background: black;
+`;
 // bgphto prop이 추가되었으니 typescript에게 타입 알려주기
 const Box = styled(motion.div)<{ bgphoto: string }>`
   background-image: url(${(props) => props.bgphoto});
   height: 200px;
-  font-size: 66px;
+  font-size: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
   background-size: cover;
   background-position: center, center;
@@ -81,6 +87,7 @@ const InfoBox = styled.div`
     text-shadow: 0.3px 0.3px 0.3px black;
   }
 `;
+
 const LeftArrow = styled(motion.div)`
   position: absolute;
   background-color: rgba(0, 0, 0, 0.5);
@@ -107,63 +114,6 @@ const RightArrow = styled(motion.div)`
   align-items: center;
   opacity: 0;
 `;
-
-const boxVariants = {
-  normal: {
-    scale: 1,
-    borderRadius: "10px 10px 0 0",
-  },
-  hover: {
-    scale: 1.3,
-    y: -80,
-    borderRadius: "5px",
-    transition: {
-      delay: 0.5,
-      duaration: 0.1,
-      type: "tween",
-    },
-  },
-};
-const SimilarBoxVariants = {
-  normal: {
-    scale: 1,
-    borderRadius: "5px 5px 5px 5px",
-  },
-  hover: {
-    scale: 1.3,
-    y: -30,
-    transition: {
-      delay: 0.5,
-      duration: 0.1,
-      type: "tween",
-    },
-  },
-};
-const infoVariants = {
-  hover: {
-    opacity: 1,
-    backgroundColor: "rgba(0,0,0,0.5)",
-    borderRadius: "0 0 5px 5px",
-    transition: {
-      delay: 0.5,
-      duaration: 0.1,
-      type: "tween",
-    },
-  },
-};
-
-const similarInfoVariants = {
-  hover: {
-    opacity: 1,
-    backgroundColor: "rgba(0,0,0,0.5)",
-    borderRadius: "0 0 5px 5px",
-    transition: {
-      delay: 0.5,
-      duaration: 0.1,
-      type: "tween",
-    },
-  },
-};
 
 const Overlay = styled(motion.div)`
   background-color: rgba(0, 0, 0, 0.5);
@@ -214,6 +164,7 @@ const BigCover = styled.div<{ bgPhoto: string }>`
 const BigOverview = styled.div`
   display: flex;
   bottom: 0;
+  font-size: 18px;
   text-shadow: 1px 1px 1px black;
   padding: 40px;
   width: 40vw;
@@ -259,6 +210,47 @@ const SimilarInfo = styled(motion.div)`
   align-items: center;
 `;
 
+const rowVariants = {
+  hidden: ({ width, turn }: { width: number; turn: boolean }) => ({
+    x: turn ? width - 5 : -width + 5,
+  }),
+  visible: {
+    x: 0,
+  },
+  exit: ({ width, turn }: { width: number; turn: boolean }) => ({
+    x: turn ? -width + 5 : width - 5,
+  }),
+};
+
+const boxVariants = {
+  normal: {
+    scale: 1,
+    borderRadius: "10px 10px 0 0",
+  },
+  hover: {
+    scale: 1.3,
+    y: -80,
+    borderRadius: "5px",
+    transition: {
+      delay: 0.5,
+      duaration: 0.1,
+      type: "tween",
+    },
+  },
+};
+
+const infoVariants = {
+  hover: {
+    opacity: 1,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    borderRadius: "0 0 5px 5px",
+    transition: {
+      delay: 0.5,
+      duaration: 0.1,
+      type: "tween",
+    },
+  },
+};
 const arrowVariants = {
   start: { opacity: 0 },
   hover: {
@@ -266,45 +258,93 @@ const arrowVariants = {
     tansition: { duration: 0.5 },
   },
 };
+const SimilarBoxVariants = {
+  normal: {
+    scale: 1,
+    borderRadius: "5px 5px 5px 5px",
+  },
+  hover: {
+    scale: 1.3,
+    y: -30,
+    transition: {
+      delay: 0.5,
+      duration: 0.1,
+      type: "tween",
+    },
+  },
+};
 
-function Category({ type }: { type: Types }) {
+const similarInfoVariants = {
+  hover: {
+    opacity: 1,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    borderRadius: "0 0 5px 5px",
+    transition: {
+      delay: 0.5,
+      duaration: 0.1,
+      type: "tween",
+    },
+  },
+};
+
+function TvCategory({ type }: { type: TvTypes }) {
   const [leaving, setLeaving] = useState(false);
-  const [turn, setTurn] = useState(true);
+  const [turn, setTurn] = useState(false);
   const [index, setIndex] = useState(0);
-  const bigMovieMatch = useMatch(`/movies/${type}/:movieId`);
-  const filmId = Number(bigMovieMatch?.params.movieId);
   const offset = 6;
   const navigate = useNavigate();
   const width = useWindowDimensions();
   const { scrollY } = useScroll();
 
-  const { data, isLoading } = useQuery<IGetMoivesResult>(["movies", type], () =>
-    getNowPlayingMovies(type)
+  const { data, isLoading } = useQuery<ITvOnTheAirProps>(["onAir", type], () =>
+    getTvOnTheAir(type)
   );
 
-  const [movieDetail, setMovieDetail] = useState<IMoveDetailProps>();
+  const bigProgramMatch = useMatch(`/tv/${type}/:programId`);
 
-  const { data: getMovieDetail, refetch } = useQuery(
-    ["detail", filmId],
-    async () => {
-      return await axios
-        .get(`${BASE_PATH}movie/${filmId}?api_key=${API_KEY}`)
-        .then((res) => setMovieDetail(res.data));
+  const clickedProgram = data?.results.find(
+    (program) => program.id + "" === bigProgramMatch?.params.programId
+  );
+  const programId = Number(bigProgramMatch?.params.programId);
+
+  const [getDetailData, setDetailData] = useState<ITvDetailProps>();
+
+  const { data: detailData, refetch: detailRefetch } = useQuery(
+    ["tvDetail", programId],
+    () => {
+      axios
+        .get(`${BASE_PATH}tv/${programId}?api_key=${API_KEY}&language=en-US`)
+        .then((res) => setDetailData(res.data));
     },
     { enabled: false }
   );
 
-  const rowVariants = {
-    hidden: ({ width, turn }: { width: number; turn: boolean }) => ({
-      x: turn ? width - 5 : -width + 5,
-    }),
-    visible: {
-      x: 0,
+  const [similarTvData, setSimilarTvData] = useState<ITvSimilarProps>();
+
+  const { data: similarData, refetch: similarRefetch } = useQuery(
+    ["tvSimilar", programId],
+    () => {
+      axios
+        .get(`${BASE_PATH}tv/${programId}/similar?api_key=${API_KEY}`)
+        .then((res) => setSimilarTvData(res.data));
     },
-    exit: ({ width, turn }: { width: number; turn: boolean }) => ({
-      x: turn ? -width + 5 : width - 5,
-    }),
+    { enabled: false }
+  );
+
+  const onBoxClick = ({
+    tvId,
+    category,
+  }: {
+    tvId: number;
+    category: string;
+  }) => {
+    navigate(`/tv/${category}/${tvId}`);
   };
+
+  const toggleLeaving = () => {
+    setLeaving((prev) => !prev);
+  };
+
   const increaseIndex = () => {
     //? increaseIndex함수를 연속으로 실행시켰을 때 두 Row컴포넌트
     //? 사이가 벌어지는 현상을 방지
@@ -335,44 +375,9 @@ function Category({ type }: { type: Types }) {
       setTurn(true);
     }
   };
-
-  const toggleLeaving = () => {
-    setLeaving((prev) => !prev);
-  };
-
-  const onBoxClick = ({
-    movieId,
-    category,
-  }: {
-    movieId: number;
-    category: string;
-  }) => {
-    navigate(`/movies/${category}/${movieId}`);
-  };
-
   const goBackHomt = () => {
-    navigate(`/`);
+    navigate(`/tv`);
   };
-
-  const clickedMovie = data?.results.find(
-    (movie) => movie.id + "" === bigMovieMatch?.params.movieId
-  );
-
-  // function getSimilartMovies(type: Types) {
-  //   return fetch(`${BASE_PATH}movie/${""}/${type}?api_key=${API_KEY}`).then((res) =>
-  //     res.json()
-  //   );
-  // }
-  const [getSimilar, setGetSilmilar] = useState<ISimilar>();
-  const { data: getSimilarMoive, refetch: similarRefetch } = useQuery(
-    ["similar", filmId],
-    async () => {
-      return await axios
-        .get(`${BASE_PATH}movie/${filmId}/similar?api_key=${API_KEY}`)
-        .then((res) => setGetSilmilar(res.data));
-    },
-    { enabled: false }
-  );
 
   return (
     <>
@@ -394,28 +399,55 @@ function Category({ type }: { type: Types }) {
             {data?.results
               .slice(1)
               .slice(offset * index, offset * index + offset)
-              .map((movie) => (
-                <Box
-                  key={type + movie.id}
-                  layoutId={type + String(movie.id)}
-                  onClick={async () => {
-                    await onBoxClick({ movieId: movie.id, category: type });
-                    refetch();
-                    similarRefetch();
-                  }}
-                  variants={boxVariants}
-                  initial="normal"
-                  whileHover="hover"
-                  transition={{ type: "tween" }}
-                  bgphoto={makeImagePath(movie.backdrop_path, "w500")}
-                >
-                  <Info variants={infoVariants}>
-                    <InfoBox>
-                      <p>{movie.title}</p>
-                      <span>{movie.release_date}</span>
-                    </InfoBox>
-                  </Info>
-                </Box>
+              .map((tv) => (
+                <BoxWrapper key={tv.id}>
+                  {tv.backdrop_path ? (
+                    <Box
+                      key={type + tv.id}
+                      layoutId={type + String(tv.id)}
+                      onClick={async () => {
+                        await onBoxClick({ tvId: tv.id, category: type });
+                        detailRefetch();
+                        similarRefetch();
+                      }}
+                      variants={boxVariants}
+                      initial="normal"
+                      whileHover="hover"
+                      transition={{ type: "tween" }}
+                      bgphoto={makeImagePath(tv.backdrop_path + "", "w500")}
+                    >
+                      <Info variants={infoVariants}>
+                        <InfoBox>
+                          <p>{tv.original_name}</p>
+                          <span>{tv.first_air_date.slice(0, 4)}</span>
+                        </InfoBox>
+                      </Info>
+                    </Box>
+                  ) : (
+                    <Box
+                      key={type + tv.id}
+                      layoutId={type + String(tv.id)}
+                      onClick={async () => {
+                        await onBoxClick({ tvId: tv.id, category: type });
+                        detailRefetch();
+                        similarRefetch();
+                      }}
+                      variants={boxVariants}
+                      initial="normal"
+                      whileHover="hover"
+                      transition={{ type: "tween" }}
+                      bgphoto={makeImagePath(tv.backdrop_path + "", "w500")}
+                    >
+                      Image is Preparing
+                      <Info variants={infoVariants}>
+                        <InfoBox>
+                          <p>{tv.original_name}</p>
+                          <span>{tv.first_air_date.slice(0, 4)}</span>
+                        </InfoBox>
+                      </Info>
+                    </Box>
+                  )}
+                </BoxWrapper>
               ))}
           </Row>
         </AnimatePresence>
@@ -445,9 +477,8 @@ function Category({ type }: { type: Types }) {
           </IconContext.Provider>
         </RightArrow>
       </Slider>
-
       <AnimatePresence>
-        {bigMovieMatch ? (
+        {bigProgramMatch ? (
           <>
             <Overlay
               onClick={goBackHomt}
@@ -455,39 +486,45 @@ function Category({ type }: { type: Types }) {
               exit={{ opacity: 0 }}
             />
             <BigMovie
-              layoutId={type + String(bigMovieMatch.params.movieId)}
+              layoutId={type + String(bigProgramMatch.params.programId)}
               scrollY={scrollY.get()}
             >
-              {clickedMovie && (
+              {clickedProgram && (
                 <>
                   <BigCover
-                    bgPhoto={makeImagePath(clickedMovie.backdrop_path, "w500")}
+                    bgPhoto={makeImagePath(
+                      clickedProgram.backdrop_path + "",
+                      "w500"
+                    )}
                   >
-                    <h2>{clickedMovie.title}</h2>
+                    <h2>{clickedProgram.original_name}</h2>
                   </BigCover>
                   <BigOverview>
-                    <h2>{clickedMovie.overview}</h2>
+                    <h2>{clickedProgram.overview}</h2>
                     <p>
-                      <span>⭐{movieDetail?.vote_average.toFixed(1)}</span>
-                      <span>{movieDetail?.runtime}min</span>
+                      <span>⭐{getDetailData?.vote_average.toFixed(1)}</span>
+                      <span>{getDetailData?.runtime}min</span>
                     </p>
                     <p>
-                      {movieDetail?.genres.map((item) => (
+                      {getDetailData?.genres.map((item) => (
                         <span key={item.id}>{item.name}</span>
                       ))}
                     </p>
                     <SimilarBox>
-                      {getSimilar?.results.slice(0, 18).map((item) => (
+                      {similarTvData?.results.slice(0, 18).map((item) => (
                         <Similar
                           variants={SimilarBoxVariants}
                           initial="normal"
                           whileHover="hover"
                           transition={{ type: "tween" }}
-                          bgphoto={makeImagePath(item.backdrop_path, "w500")}
+                          bgphoto={makeImagePath(
+                            item.backdrop_path + "",
+                            "w500"
+                          )}
                           key={"similar" + String(item.id)}
                         >
                           <SimilarInfo variants={similarInfoVariants}>
-                            {item.title}
+                            {item.original_name}
                           </SimilarInfo>
                         </Similar>
                       ))}
@@ -503,4 +540,4 @@ function Category({ type }: { type: Types }) {
   );
 }
 
-export default Category;
+export default TvCategory;

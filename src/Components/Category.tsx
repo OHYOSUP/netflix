@@ -273,8 +273,8 @@ function Category({ type }: { type: Types }) {
   const [turn, setTurn] = useState(true);
   const [index, setIndex] = useState(0);
   const bigMovieMatch = useMatch(`/movies/${type}/:movieId`);
-  console.log(bigMovieMatch)
-  const filmId = Number(bigMovieMatch?.params.movieId);  
+
+  const filmId = Number(bigMovieMatch?.params.movieId);
   const offset = 6;
   const navigate = useNavigate();
   const width = useWindowDimensions();
@@ -360,8 +360,6 @@ function Category({ type }: { type: Types }) {
     (movie) => movie.id + "" === bigMovieMatch?.params.movieId
   );
 
-  
-
   // function getSimilartMovies(type: Types) {
   //   return fetch(`${BASE_PATH}movie/${""}/${type}?api_key=${API_KEY}`).then((res) =>
   //     res.json()
@@ -377,6 +375,19 @@ function Category({ type }: { type: Types }) {
     },
     { enabled: false }
   );
+
+  
+  const similarBoxOnClicked = ({
+    contentId,
+    category,
+  }: {
+    contentId: number;
+    category: string;
+  }) => {
+
+    navigate(`/movies/${category}/${contentId}`);
+    
+  };
 
   return (
     <>
@@ -449,7 +460,6 @@ function Category({ type }: { type: Types }) {
           </IconContext.Provider>
         </RightArrow>
       </Slider>
-
       <AnimatePresence>
         {bigMovieMatch ? (
           <>
@@ -489,6 +499,12 @@ function Category({ type }: { type: Types }) {
                           transition={{ type: "tween" }}
                           bgphoto={makeImagePath(item.backdrop_path, "w500")}
                           key={"similar" + String(item.id)}
+                          onClick={() => {
+                            similarBoxOnClicked({
+                              contentId: item.id,
+                              category: type,
+                            });
+                          }}
                         >
                           <SimilarInfo variants={similarInfoVariants}>
                             {item.title}

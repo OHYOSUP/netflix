@@ -81,7 +81,7 @@ function Tv() {
           <Title>{data?.results[0].original_name}</Title>
           <Overview>{data?.results[0].overview}</Overview>
           <DetailedInfo onClick={() => onDetailClick(programID as number)}>
-            상세정보
+          Detail
           </DetailedInfo>
         </Banner>
       )}

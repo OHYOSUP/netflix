@@ -24,6 +24,7 @@ const Logo = styled(motion.svg)`
   margin-right: 50px;
   width: 95px;
   height: 25px;
+  cursor: pointer;
   fill: ${(props) => props.theme.red};
   path {
     stroke-width: 6px;
@@ -65,17 +66,6 @@ const Search = styled.form`
     height: 25px;
   }
 `;
-
-const logoVariants = {
-  start: { fillOpacity: 1 },
-  end: {},
-  active: {
-    fillOpacity: [0, 1, 0],
-    transition: {
-      repeat: Infinity,
-    },
-  },
-};
 
 const Input = styled(motion.input)`
   transform-origin: right;
@@ -123,7 +113,7 @@ function Header() {
   const { register, handleSubmit } = useForm<IForm>();
 
   const onValid = (data: IForm) => {
-    console.log(data);
+    
 
     navigate(`/search?keyword=${data.keyword}`);
   };
@@ -135,19 +125,19 @@ function Header() {
       inputAnimation.start({ scaleX: 1 });
     }
     setSearchOpen((prev) => !prev);
+
   };
 
   const homeMatch = useMatch("/");
   const tvMatch = useMatch("tv");
-
+  const goBackHome = ()=>{
+    navigate('/')
+  }
   return (
     <Nav variants={navVariants} initial={"top"} animate={navAnimation}>
       <Col>
         <Logo
-          variants={logoVariants}
-          initial="start"
-          animate="end"
-          whileHover="active"
+          onClick = {goBackHome}
           xmlns="http://www.w3.org/2000/svg"
           viewBox="0 0 1024 276.742"
         >

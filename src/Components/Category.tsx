@@ -233,6 +233,7 @@ const BigOverview = styled.div`
 `;
 const SimilarBox = styled.div`
   display: grid;
+  cursor: pointer;
   grid-template-columns: repeat(3, 1fr);
   width: 100%;
   gap: 10px 10px;
@@ -272,7 +273,8 @@ function Category({ type }: { type: Types }) {
   const [turn, setTurn] = useState(true);
   const [index, setIndex] = useState(0);
   const bigMovieMatch = useMatch(`/movies/${type}/:movieId`);
-  const filmId = Number(bigMovieMatch?.params.movieId);
+  console.log(bigMovieMatch)
+  const filmId = Number(bigMovieMatch?.params.movieId);  
   const offset = 6;
   const navigate = useNavigate();
   const width = useWindowDimensions();
@@ -357,6 +359,8 @@ function Category({ type }: { type: Types }) {
   const clickedMovie = data?.results.find(
     (movie) => movie.id + "" === bigMovieMatch?.params.movieId
   );
+
+  
 
   // function getSimilartMovies(type: Types) {
   //   return fetch(`${BASE_PATH}movie/${""}/${type}?api_key=${API_KEY}`).then((res) =>

@@ -189,6 +189,7 @@ const SimilarBox = styled.div`
   gap: 10px 10px;
   padding-top: 10vh;
   background-color: linear-gradient(rgba(0, 0, 0, 0), rgba(0, 0, 0, 1));
+  cursor: pointer;
 `;
 
 const Similar = styled(motion.div)<{ bgphoto: string }>`
@@ -197,6 +198,7 @@ const Similar = styled(motion.div)<{ bgphoto: string }>`
   background-image: url(${(props) => props.bgphoto});
   background-size: cover;
   border-radius: 15px;
+  text-align: center;
 `;
 const SimilarInfo = styled(motion.div)`
   padding: 10px;
@@ -510,25 +512,48 @@ function TvCategory({ type }: { type: TvTypes }) {
                         <span key={item.id}>{item.name}</span>
                       ))}
                     </p>
-                    <SimilarBox>
-                      {similarTvData?.results.slice(0, 18).map((item) => (
-                        <Similar
-                          variants={SimilarBoxVariants}
-                          initial="normal"
-                          whileHover="hover"
-                          transition={{ type: "tween" }}
-                          bgphoto={makeImagePath(
-                            item.backdrop_path + "",
-                            "w500"
-                          )}
-                          key={"similar" + String(item.id)}
-                        >
-                          <SimilarInfo variants={similarInfoVariants}>
-                            {item.original_name}
-                          </SimilarInfo>
-                        </Similar>
-                      ))}
-                    </SimilarBox>
+                    {clickedProgram.backdrop_path ? (
+                      <SimilarBox>
+                        {similarTvData?.results.slice(0, 18).map((item) => (
+                          <Similar
+                            variants={SimilarBoxVariants}
+                            initial="normal"
+                            whileHover="hover"
+                            transition={{ type: "tween" }}
+                            bgphoto={makeImagePath(
+                              item.backdrop_path + "",
+                              "w500"
+                            )}
+                            key={"similar" + String(item.id)}
+                          >
+                            <SimilarInfo variants={similarInfoVariants}>
+                              {item.original_name}
+                            </SimilarInfo>
+                          </Similar>
+                        ))}
+                      </SimilarBox>
+                    ) : (
+                      <SimilarBox>
+                        {similarTvData?.results.slice(0, 18).map((item) => (
+                          <Similar
+                            variants={SimilarBoxVariants}
+                            initial="normal"
+                            whileHover="hover"
+                            transition={{ type: "tween" }}
+                            bgphoto={makeImagePath(
+                              item.backdrop_path + "",
+                              "w500"
+                            )}
+                            key={"similar" + String(item.id)}
+                          >
+                            Image is Preparing
+                            <SimilarInfo variants={similarInfoVariants}>
+                              {item.original_name}
+                            </SimilarInfo>
+                          </Similar>
+                        ))}
+                      </SimilarBox>
+                    )}
                   </BigOverview>
                 </>
               )}

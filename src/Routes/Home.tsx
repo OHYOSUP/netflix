@@ -63,6 +63,7 @@ function Home() {
   );
 
   const movieID = data?.results[0].id;
+  
   const onDetailClick = (movieID: number) => {
     navigate(`/movies/${Types.now_playing}/${movieID}`);
   };
@@ -77,7 +78,7 @@ function Home() {
             <Title>{data?.results[0].original_title}</Title>
             <Overview>{data?.results[0].overview}</Overview>
             <DetailedInfo onClick={() => onDetailClick(movieID as number)}>
-              상세정보
+              Detail
             </DetailedInfo>
           </Banner>
           <Categories>Now playing</Categories>

@@ -1,6 +1,5 @@
 import { Variants } from "framer-motion";
 
-
 export const boxVariants = {
   normal: {
     scale: 1,
@@ -65,7 +64,6 @@ export const arrowVariants = {
     tansition: { duration: 0.5 },
   },
 };
-
 
 export const rowVariants = {
   hidden: ({ width, turn }: { width: number; turn: boolean }) => ({

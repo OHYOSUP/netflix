@@ -36,6 +36,21 @@ export const Box = styled(motion.div)<{ bgphoto: string }>`
   }
 `;
 
+export const SearchBox = styled(motion.div)<{ bgphoto: string }>`
+  background-image: url(${(props) => props.bgphoto});
+  height: 200px;
+  font-size: 66px;
+  cursor: pointer;
+  background-size: cover;
+  background-position: center, center;
+  &:first-child {
+    transform-origin: center center;
+  }
+  &:last-child {
+    transform-origin: center center;
+  }
+`;
+
 export const Info = styled(motion.div)`
   padding: 10px;
   background-color: rgba(0, 0, 0, 0);

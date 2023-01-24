@@ -205,7 +205,7 @@ export interface ITvSimilarProps {
   results: [
     {
       adult: boolean;
-      backdrop_path: null;
+      backdrop_path: string;
       genre_ids: [];
       id: number;
       original_name: string;
@@ -238,7 +238,25 @@ interface ISearchResult {
   vote_average: number;
 }
 export interface ISearchMovieProps {
-  data:{
+  data: {
     results: ISearchResult[];
-  } 
+  };
+}
+
+interface ITvSearchResult {
+  backdrop_path: string;
+  id: number;
+  original_language: string;
+  original_name: string;
+  overview: string;
+  popularity: number;
+  poster_path: string;
+  first_air_date: string;
+  title: string;
+  vote_average: number;
+}
+export interface ISearchTvProps {
+  data:{
+    results: ITvSearchResult[]
+  }
 }

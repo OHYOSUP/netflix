@@ -113,8 +113,6 @@ function Header() {
   const { register, handleSubmit } = useForm<IForm>();
 
   const onValid = (data: IForm) => {
-    
-
     navigate(`/search?keyword=${data.keyword}`);
   };
 
@@ -125,19 +123,18 @@ function Header() {
       inputAnimation.start({ scaleX: 1 });
     }
     setSearchOpen((prev) => !prev);
-
   };
 
   const homeMatch = useMatch("/");
   const tvMatch = useMatch("tv");
-  const goBackHome = ()=>{
-    navigate('/')
-  }
+  const goBackHome = () => {
+    navigate("/");
+  };
   return (
     <Nav variants={navVariants} initial={"top"} animate={navAnimation}>
       <Col>
         <Logo
-          onClick = {goBackHome}
+          onClick={goBackHome}
           xmlns="http://www.w3.org/2000/svg"
           viewBox="0 0 1024 276.742"
         >

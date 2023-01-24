@@ -4,73 +4,47 @@ import { useQuery } from "react-query";
 import { AnimatePresence, useScroll } from "framer-motion";
 import { useMatch, useNavigate } from "react-router-dom";
 import makeImagePath from "../Routes/makeImagePath";
-import {
-  BASE_PATH,
-  API_KEY,
-  ISearchMovieProps,
-  IMoveDetailProps,
-  ISimilar,
-} from "../api";
+import { BASE_PATH, API_KEY, ISearchTvProps, ITvDetailProps } from "../api";
 import {
   Slider,
   Row,
-  SearchBox,
   Info,
   InfoBox,
   Overlay,
   BigMovie,
   BigCover,
   BigOverview,
-  SimilarBox,
-  Similar,
-  SimilarInfo,
+  SearchBox,
   BoxWrapper,
 } from "../style/styled";
-import {
-  boxVariants,
-  infoVariants,
-  SimilarBoxVariants,
-  similarInfoVariants,
-} from "../style/variants";
+import { boxVariants, infoVariants } from "../style/variants";
 
-function SearchCategory({ keyword }: { keyword: string | null }) {
+function SearchTv({ keyword }: { keyword: string | null }) {
   const { scrollY } = useScroll();
   const bigContentMatch = useMatch(`/search/:contentId`);
-  const filmId = Number(bigContentMatch?.params.contentId);
+  const programId = Number(bigContentMatch?.params.contentId);
   const navigate = useNavigate();
 
-  const [contentDetail, setContentDetail] = useState<IMoveDetailProps>();
+  const [getDetailData, setDetailData] = useState<ITvDetailProps>();
 
-  const { data: getMovieDetail, refetch } = useQuery(
-    ["searchDetail", filmId],
-    async () => {
-      return await axios
-        .get(`${BASE_PATH}movie/${filmId}?api_key=${API_KEY}`)
-        .then((res) => setContentDetail(res.data));
+  const { data: detailData, refetch: detailRefetch } = useQuery(
+    ["tvDetail", programId],
+    () => {
+      axios
+        .get(`${BASE_PATH}tv/${programId}?api_key=${API_KEY}&language=en-US`)
+        .then((res) => setDetailData(res.data));
     },
     { enabled: false }
   );
 
-  const [getSimilar, setGetSilmilar] = useState<ISimilar>();
-  const { data: getSimilarMoive, refetch: similarRefetch } = useQuery(
-    ["similar", filmId],
-    async () => {
-      return await axios
-        .get(`${BASE_PATH}movie/${filmId}/similar?api_key=${API_KEY}`)
-        .then((res) => setGetSilmilar(res.data));
-    },
-    { enabled: false }
-  );
-
-  const { data, isLoading } = useQuery<ISearchMovieProps>(
-    ["searchMoive", keyword],
+  const { data, isLoading } = useQuery<ISearchTvProps>(
+    ["searchTv", keyword],
     () =>
-      axios.get(`${BASE_PATH}/search/movie?api_key=${API_KEY}&query=${keyword}`)
+      axios.get(`${BASE_PATH}/search/tv?api_key=${API_KEY}&query=${keyword}`)
   );
-
 
   const onBoxClick = ({ contentId }: { contentId: number }) => {
-    navigate(`/search/${contentId}?category=movies&keyword=${keyword}`);
+    navigate(`/search/${contentId}?category=tv&keyword=${keyword}`);
   };
 
   const goBackHomt = () => {
@@ -98,7 +72,7 @@ function SearchCategory({ keyword }: { keyword: string | null }) {
                       layoutId={"search" + item.id + ""}
                       onClick={async () => {
                         await onBoxClick({ contentId: item.id });
-                        refetch();
+                        detailRefetch();
                       }}
                       variants={boxVariants}
                       bgphoto={makeImagePath(item.backdrop_path, "w500")}
@@ -108,7 +82,7 @@ function SearchCategory({ keyword }: { keyword: string | null }) {
                     >
                       <Info variants={infoVariants}>
                         <InfoBox>
-                          <p>{item.original_title}</p>
+                          <p>{item.original_name}</p>
                           <span>{item.release_date}</span>
                         </InfoBox>
                       </Info>
@@ -124,8 +98,8 @@ function SearchCategory({ keyword }: { keyword: string | null }) {
                       Image is Preparing
                       <Info variants={infoVariants}>
                         <InfoBox>
-                          <p>{item.original_title}</p>
-                          <span>{item.release_date.slice(0, 4)}</span>
+                          <p>{item.original_name}</p>
+                          <span>{item.release_date}</span>
                         </InfoBox>
                       </Info>
                     </SearchBox>
@@ -152,35 +126,19 @@ function SearchCategory({ keyword }: { keyword: string | null }) {
                   <BigCover
                     bgPhoto={makeImagePath(clickContent.backdrop_path, "w500")}
                   >
-                    <h2>{clickContent.original_title}</h2>
+                    <h2>{clickContent.original_name}</h2>
                   </BigCover>
                   <BigOverview>
                     <h2>{clickContent.overview}</h2>
                     <p>
-                      <span>⭐{contentDetail?.popularity.toFixed(1)}</span>
-                      <span>{contentDetail?.runtime}min</span>
+                      <span>⭐{getDetailData?.vote_average.toFixed(1)}</span>
+                      <span>{getDetailData?.runtime}min</span>
                     </p>
                     <p>
-                      {contentDetail?.genres.map((item) => (
+                      {getDetailData?.genres.map((item) => (
                         <span key={item.id}>{item.name}</span>
                       ))}
                     </p>
-                    <SimilarBox>
-                      {getSimilar?.results.slice(0, 18).map((item) => (
-                        <Similar
-                          variants={SimilarBoxVariants}
-                          initial="normal"
-                          whileHover="hover"
-                          transition={{ type: "tween" }}
-                          bgphoto={makeImagePath(item.backdrop_path, "w500")}
-                          key={"similar" + String(item.id)}
-                        >
-                          <SimilarInfo variants={similarInfoVariants}>
-                            {item.title}
-                          </SimilarInfo>
-                        </Similar>
-                      ))}
-                    </SimilarBox>
                   </BigOverview>
                 </>
               )}
@@ -192,4 +150,4 @@ function SearchCategory({ keyword }: { keyword: string | null }) {
   );
 }
 
-export default SearchCategory;
+export default SearchTv;

@@ -12,7 +12,9 @@ import {
   InfoBox,
   Overlay,
   BigMovie,
+  NoticeWrapper,
   BigCover,
+  NowLoading,
   BigOverview,
   SearchBox,
   BoxWrapper,
@@ -27,6 +29,12 @@ function SearchTv({ keyword }: { keyword: string | null }) {
 
   const [getDetailData, setDetailData] = useState<ITvDetailProps>();
 
+  const { data, isLoading } = useQuery<ISearchTvProps>(
+    ["searchTv", keyword],
+    () =>
+      axios.get(`${BASE_PATH}/search/tv?api_key=${API_KEY}&query=${keyword}`)
+  );
+
   const { data: detailData, refetch: detailRefetch } = useQuery(
     ["tvDetail", programId],
     () => {
@@ -35,12 +43,6 @@ function SearchTv({ keyword }: { keyword: string | null }) {
         .then((res) => setDetailData(res.data));
     },
     { enabled: false }
-  );
-
-  const { data, isLoading } = useQuery<ISearchTvProps>(
-    ["searchTv", keyword],
-    () =>
-      axios.get(`${BASE_PATH}/search/tv?api_key=${API_KEY}&query=${keyword}`)
   );
 
   const onBoxClick = ({ contentId }: { contentId: number }) => {
@@ -57,95 +59,112 @@ function SearchTv({ keyword }: { keyword: string | null }) {
 
   return (
     <>
-      <Slider>
-        <AnimatePresence>
-          <Row>
-            {data?.data.results
-              .slice()
-              .sort((a, b) => {
-                return b.popularity - a.popularity;
-              })
-              .map((item: any): any => (
-                <BoxWrapper key={item.id}>
-                  {item.poster_path ? (
-                    <SearchBox
-                      layoutId={"search" + item.id + ""}
-                      onClick={async () => {
-                        await onBoxClick({ contentId: item.id });
-                        detailRefetch();
-                      }}
-                      variants={boxVariants}
-                      bgphoto={makeImagePath(item.backdrop_path, "w500")}
-                      initial="normal"
-                      whileHover="hover"
-                      transition={{ type: "tween" }}
-                    >
-                      <Info variants={infoVariants}>
-                        <InfoBox>
-                          <p>{item.original_name}</p>
-                          <span>{item.release_date}</span>
-                        </InfoBox>
-                      </Info>
-                    </SearchBox>
-                  ) : (
-                    <SearchBox
-                      variants={boxVariants}
-                      bgphoto={makeImagePath(item.backdrop_path, "w500")}
-                      initial="normal"
-                      whileHover="hover"
-                      transition={{ type: "tween" }}
-                    >
-                      Image is Preparing
-                      <Info variants={infoVariants}>
-                        <InfoBox>
-                          <p>{item.original_name}</p>
-                          <span>{item.release_date}</span>
-                        </InfoBox>
-                      </Info>
-                    </SearchBox>
-                  )}
-                </BoxWrapper>
-              ))}
-          </Row>
-        </AnimatePresence>
-      </Slider>
-      <AnimatePresence>
-        {bigContentMatch ? (
+      {data?.data.results[0] ? (
+        isLoading ? (
+          <NowLoading>Now is Loading</NowLoading>
+        ) : (
           <>
-            <Overlay
-              onClick={goBackHomt}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-            />
-            <BigMovie
-              layoutId={"search" + String(bigContentMatch.params.contentId)}
-              scrollY={scrollY.get()}
-            >
-              {clickContent && (
+            <Slider>
+              <AnimatePresence>
+                <Row>
+                  {data?.data.results
+                    .slice()
+                    .sort((a, b) => {
+                      return b.popularity - a.popularity;
+                    })
+                    .map((item: any): any => (
+                      <BoxWrapper key={item.id}>
+                        {item.poster_path ? (
+                          <SearchBox
+                            layoutId={"search" + item.id + ""}
+                            onClick={async () => {
+                              await onBoxClick({ contentId: item.id });
+                              detailRefetch();
+                            }}
+                            variants={boxVariants}
+                            bgphoto={makeImagePath(item.backdrop_path, "w500")}
+                            initial="normal"
+                            whileHover="hover"
+                            transition={{ type: "tween" }}
+                          >
+                            <Info variants={infoVariants}>
+                              <InfoBox>
+                                <p>{item.original_name}</p>
+                                <span>{item.release_date}</span>
+                              </InfoBox>
+                            </Info>
+                          </SearchBox>
+                        ) : (
+                          <SearchBox
+                            variants={boxVariants}
+                            bgphoto={makeImagePath(item.backdrop_path, "w500")}
+                            initial="normal"
+                            whileHover="hover"
+                            transition={{ type: "tween" }}
+                          >
+                            Image is Preparing
+                            <Info variants={infoVariants}>
+                              <InfoBox>
+                                <p>{item.original_name}</p>
+                                <span>{item.release_date}</span>
+                              </InfoBox>
+                            </Info>
+                          </SearchBox>
+                        )}
+                      </BoxWrapper>
+                    ))}
+                </Row>
+              </AnimatePresence>
+            </Slider>
+            <AnimatePresence>
+              {bigContentMatch ? (
                 <>
-                  <BigCover
-                    bgPhoto={makeImagePath(clickContent.backdrop_path, "w500")}
+                  <Overlay
+                    onClick={goBackHomt}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                  />
+                  <BigMovie
+                    layoutId={
+                      "search" + String(bigContentMatch.params.contentId)
+                    }
+                    scrollY={scrollY.get()}
                   >
-                    <h2>{clickContent.original_name}</h2>
-                  </BigCover>
-                  <BigOverview>
-                    <h2>{clickContent.overview}</h2>
-                    <p>
-                      <span>⭐{getDetailData?.vote_average.toFixed(1)}</span>
-                      <span>{getDetailData?.runtime}min</span>
-                    </p>
-                    <p>
-                      {getDetailData?.genres.map((item) => (
-                        <span key={item.id}>{item.name}</span>
-                      ))}
-                    </p>
-                  </BigOverview>
+                    {clickContent && (
+                      <>
+                        <BigCover
+                          bgPhoto={makeImagePath(
+                            clickContent.backdrop_path,
+                            "w500"
+                          )}
+                        >
+                          <h2>{clickContent.original_name}</h2>
+                        </BigCover>
+                        <BigOverview>
+                          <h2>{clickContent.overview}</h2>
+                          <p>
+                            <span>
+                              ⭐{getDetailData?.vote_average.toFixed(1)}
+                            </span>
+                            <span>{getDetailData?.runtime}min</span>
+                          </p>
+                          <p>
+                            {getDetailData?.genres.map((item) => (
+                              <span key={item.id}>{item.name}</span>
+                            ))}
+                          </p>
+                        </BigOverview>
+                      </>
+                    )}
+                  </BigMovie>
                 </>
-              )}
-            </BigMovie>
+              ) : null}
+            </AnimatePresence>
           </>
-        ) : null}
-      </AnimatePresence>
+        )
+      ) : (
+        <NoticeWrapper>Sorry, we couldn't find</NoticeWrapper>
+      )}
     </>
   );
 }

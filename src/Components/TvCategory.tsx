@@ -41,7 +41,10 @@ import {
   arrowVariants,
   rowVariants,
 } from "../style/variants";
+import { useRecoilState } from "recoil";
+import { turnContent } from "../atom";
 
+// import { contentToggle } from "../Routes/Search";
 function TvCategory({ type }: { type: TvTypes }) {
   const [leaving, setLeaving] = useState(false);
   const [turn, setTurn] = useState(false);
@@ -50,6 +53,8 @@ function TvCategory({ type }: { type: TvTypes }) {
   const navigate = useNavigate();
   const width = useWindowDimensions();
   const { scrollY } = useScroll();
+
+  const [toggleContent, setToggleContent] = useRecoilState(turnContent);
 
   const { data, isLoading } = useQuery<ITvOnTheAirProps>(["onAir", type], () =>
     getTvOnTheAir(type)
@@ -132,6 +137,19 @@ function TvCategory({ type }: { type: TvTypes }) {
   };
   const goBackHomt = () => {
     navigate(`/tv`);
+  };
+
+  const similarBoxOnClicked = ({
+    contentId,
+    category,
+    keyword,
+  }: {
+    contentId: number;
+    category: string;
+    keyword: string;
+  }) => {
+    navigate(`/search?keyword=${keyword}`);
+    setToggleContent(false);
   };
 
   return (
@@ -269,6 +287,13 @@ function TvCategory({ type }: { type: TvTypes }) {
                       <SimilarBox>
                         {similarTvData?.results.slice(0, 18).map((item) => (
                           <Similar
+                            onClick={() => {
+                              similarBoxOnClicked({
+                                contentId: item.id,
+                                category: type,
+                                keyword: item.original_name,
+                              });
+                            }}
                             variants={SimilarBoxVariants}
                             initial="normal"
                             whileHover="hover"

@@ -1,5 +1,7 @@
 import styled from "styled-components";
 import { useState } from "react";
+import { turnContent } from "../atom";
+import { useSetRecoilState, useRecoilState } from "recoil";
 import { useLocation } from "react-router-dom";
 import SearchCategory from "../Components/SearchCategory";
 import SearchTv from "../Components/SearchTv";
@@ -20,8 +22,11 @@ const BtnWrapper = styled(motion.div)`
   color: #718093;
 `;
 
+
 function Search() {
-  const [toggleContent, setToggleContent] = useState(true);
+  // const [toggleContent, setToggleContent] = useState<boolean>(true);
+
+  const [toggleContent, setToggleContent] = useRecoilState(turnContent);
   // 현재 페이지의 데이터를 가져올 수 있음
   const location = useLocation();
   // URLSearchParams() = get()과 함께 사용하면url내의 데이터에 접근할 수 있다

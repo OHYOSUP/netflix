@@ -139,12 +139,16 @@ function Category({ type }: { type: Types }) {
   const similarBoxOnClicked = ({
     contentId,
     category,
+    keyword
   }: {
     contentId: number;
     category: string;
+    keyword: string;
   }) => {
-    navigate(`/movies/${category}/${contentId}`);
+    navigate(`/search?keyword=${keyword}`);
+
   };
+
 
   return (
     <>
@@ -184,7 +188,7 @@ function Category({ type }: { type: Types }) {
                   <Info variants={infoVariants}>
                     <InfoBox>
                       <p>{movie.title}</p>
-                      <span>{movie.release_date.slice(0, 4)}</span>
+                      <span>{movie.release_date}</span>
                     </InfoBox>
                   </Info>
                 </Box>
@@ -260,6 +264,7 @@ function Category({ type }: { type: Types }) {
                             similarBoxOnClicked({
                               contentId: item.id,
                               category: type,
+                              keyword: item.original_title
                             });
                           }}
                         >

@@ -2,12 +2,17 @@
 import styled from "styled-components";
 import {motion} from 'framer-motion'
 
-
+export const NowLoading = styled.div`
+margin: 30px;
+padding-top : 50px;
+color: ${props=> props.theme.white.lighter};
+font-size: 30px;
+`
 export const Slider = styled(motion.div)`
   position: relative;
-  margin-bottom: 180px;
+  margin-bottom: 150px;
   padding: 40px;
-  top: 10px;
+  top: 0;
   height: 180px;
 `;
 
@@ -36,6 +41,13 @@ export const Box = styled(motion.div)<{ bgphoto: string }>`
   }
 `;
 
+export const NoticeWrapper = styled.div`
+  margin: 30px;
+  padding-top : 50px;
+  color: #c23616;
+  font-size: 30px;
+`;
+
 export const SearchBox = styled(motion.div)<{ bgphoto: string }>`
   background-image: url(${(props) => props.bgphoto});
   height: 200px;
@@ -43,6 +55,10 @@ export const SearchBox = styled(motion.div)<{ bgphoto: string }>`
   cursor: pointer;
   background-size: cover;
   background-position: center, center;
+  font-size : 24px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
   &:first-child {
     transform-origin: center center;
   }
@@ -174,6 +190,7 @@ export const BigOverview = styled.div`
     text-shadow: 0.3px 0.3px 0.3px white;
     span {
       padding: 0 20px 0 0;
+      font-style : italic;
     }
   }
 `;

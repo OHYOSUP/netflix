@@ -86,10 +86,10 @@ function SearchCategory({ keyword }: { keyword: string | null }) {
 
   return (
     <>
-      {data?.data.results[0] ? (
-        isLoading ? (
+      {isLoading ? (
+         
           <NowLoading>Now is Loading</NowLoading>
-        ) : (
+        ) : data?.data.results[0] ? (
           <>
             <Slider>
               <AnimatePresence>
@@ -208,7 +208,7 @@ function SearchCategory({ keyword }: { keyword: string | null }) {
             </AnimatePresence>
           </>
         )
-      ) : (
+       : (
         <NoticeWrapper>Sorry, we couldn't find</NoticeWrapper>
       )}
     </>

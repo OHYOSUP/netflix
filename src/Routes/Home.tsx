@@ -49,6 +49,7 @@ const Overview = styled.p`
 const DetailedInfo = styled(motion.div)`
   width: 6vw;
   height: 5vh;
+  cursor: pointer;
   border-radius: 5px;
   background-color: ${(props) => props.theme.black.lighter};
   color: ${(props) => props.theme.white.lighter};

@@ -9,7 +9,7 @@ import { getKeyword } from "./atom";
 import SearchCategory from "./Components/SearchCategory";
 
 function App() {
-  const keyword = useRecoilValue(getKeyword);
+  // const keyword = useRecoilValue(getKeyword);
 
   return (
     <BrowserRouter>

@@ -163,7 +163,7 @@ function SearchTv({ keyword }: { keyword: string | null }) {
           </>
         )
        : (
-        <NoticeWrapper>Sorry, we couldn't find</NoticeWrapper>
+        <NoticeWrapper>Sorry, We couldn't find</NoticeWrapper>
       )}
     </>
   );

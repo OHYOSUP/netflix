@@ -196,7 +196,6 @@ export const BigOverview = styled.div`
 `;
 export const SimilarBox = styled.div`
   display: grid;
-  cursor: pointer;
   grid-template-columns: repeat(3, 1fr);
   width: 100%;
   gap: 10px 10px;
@@ -207,6 +206,7 @@ export const SimilarBox = styled.div`
 export const Similar = styled(motion.div)<{ bgphoto: string }>`
   width: 250px;
   height: 160px;
+  cursor: pointer;
   background-image: url(${(props) => props.bgphoto});
   background-size: cover;
   border-radius: 15px;

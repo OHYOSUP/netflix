@@ -188,7 +188,8 @@ function Category({ type }: { type: Types }) {
                   <Info variants={infoVariants}>
                     <InfoBox>
                       <p>{movie.title}</p>
-                      <span>{movie.release_date}</span>
+                      {/* slice함수를 넣으면 에러가 남. 왜지.. */}
+                      {/* <span>{movie.release_date.slice(0,4)}</span> */}
                     </InfoBox>
                   </Info>
                 </Box>

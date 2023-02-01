@@ -87,128 +87,121 @@ function SearchCategory({ keyword }: { keyword: string | null }) {
   return (
     <>
       {isLoading ? (
-         
-          <NowLoading>Now is Loading</NowLoading>
-        ) : data?.data.results[0] ? (
-          <>
-            <Slider>
-              <AnimatePresence>
-                <Row>
-                  {data?.data.results
-                    .slice()
-                    .sort((a, b) => {
-                      return b.popularity - a.popularity;
-                    })
-                    .map((item: any): any => (
-                      <BoxWrapper key={item.id}>
-                        {item.poster_path ? (
-                          <SearchBox
-                            layoutId={"search" + item.id + ""}
-                            onClick={async () => {
-                              await onBoxClick({ contentId: item.id });
-                              refetch();
-                            }}
-                            variants={boxVariants}
-                            bgphoto={makeImagePath(item.backdrop_path, "w500")}
-                            initial="normal"
-                            whileHover="hover"
-                            transition={{ type: "tween" }}
-                          >
-                            <Info variants={infoVariants}>
-                              <InfoBox>
-                                <p>{item.original_title}</p>
-                                <span>{item.release_date}</span>
-                              </InfoBox>
-                            </Info>
-                          </SearchBox>
-                        ) : (
-                          <SearchBox
-                            variants={boxVariants}
-                            bgphoto={makeImagePath(item.backdrop_path, "w500")}
-                            initial="normal"
-                            whileHover="hover"
-                            transition={{ type: "tween" }}
-                          >
-                            Image is Preparing
-                            <Info variants={infoVariants}>
-                              <InfoBox>
-                                <p>{item.original_title}</p>
-                                <span>{item.release_date.slice(0, 4)}</span>
-                              </InfoBox>
-                            </Info>
-                          </SearchBox>
-                        )}
-                      </BoxWrapper>
-                    ))}
-                </Row>
-              </AnimatePresence>
-            </Slider>
+        <NowLoading>Now is Loading</NowLoading>
+      ) : data?.data.results[0] ? (
+        <>
+          <Slider>
             <AnimatePresence>
-              {bigContentMatch ? (
-                <>
-                  <Overlay
-                    onClick={goBackHomt}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                  />
-                  <BigMovie
-                    layoutId={
-                      "search" + String(bigContentMatch.params.contentId)
-                    }
-                    scrollY={scrollY.get()}
-                  >
-                    {clickContent && (
-                      <>
-                        <BigCover
-                          bgPhoto={makeImagePath(
-                            clickContent.backdrop_path,
-                            "w500"
-                          )}
+              <Row>
+                {data?.data.results
+                  .slice()
+                  .sort((a, b) => {
+                    return b.popularity - a.popularity;
+                  })
+                  .map((item: any): any => (
+                    <BoxWrapper key={item.id}>
+                      {item.poster_path ? (
+                        <SearchBox
+                          layoutId={"search" + item.id + ""}
+                          onClick={async () => {
+                            await onBoxClick({ contentId: item.id });
+                            refetch();
+                          }}
+                          variants={boxVariants}
+                          bgphoto={makeImagePath(item.backdrop_path, "w500")}
+                          initial="normal"
+                          whileHover="hover"
+                          transition={{ type: "tween" }}
                         >
-                          <h2>{clickContent.original_title}</h2>
-                        </BigCover>
-                        <BigOverview>
-                          <h2>{clickContent.overview}</h2>
-                          <p>
-                            <span>
-                              ⭐{contentDetail?.popularity.toFixed(1)}
-                            </span>
-                            <span>{contentDetail?.runtime}min</span>
-                          </p>
-                          <p>
-                            {contentDetail?.genres.map((item) => (
-                              <span key={item.id}>{item.name}</span>
-                            ))}
-                          </p>
-                          <SimilarBox>
-                            {getSimilar?.results.slice(0, 18).map((item) => (
-                              <Similar
-                                variants={SimilarBoxVariants}
-                                initial="normal"
-                                whileHover="hover"
-                                transition={{ type: "tween" }}
-                                bgphoto={makeImagePath(
-                                  item.backdrop_path,
-                                  "w500"
-                                )}
-                                key={"similar" + String(item.id)}
-                              >
-                                <SimilarInfo variants={similarInfoVariants}>
-                                  {item.title}
-                                </SimilarInfo>
-                              </Similar>
-                            ))}
-                          </SimilarBox>
-                        </BigOverview>
-                      </>
-                    )}
-                  </BigMovie>
-                </>
-              ) : null}
+                          <Info variants={infoVariants}>
+                            <InfoBox>
+                              <p>{item.original_title}</p>
+                            </InfoBox>
+                          </Info>
+                        </SearchBox>
+                      ) : (
+                        <SearchBox
+                          variants={boxVariants}
+                          bgphoto={makeImagePath(item.backdrop_path, "w500")}
+                          initial="normal"
+                          whileHover="hover"
+                          transition={{ type: "tween" }}
+                        >
+                          Image is Preparing
+                          <Info variants={infoVariants}>
+                            <InfoBox>
+                              <p>{item.original_title}</p>
+                              <span>{item.release_date.slice(0, 4)}</span>
+                            </InfoBox>
+                          </Info>
+                        </SearchBox>
+                      )}
+                    </BoxWrapper>
+                  ))}
+              </Row>
             </AnimatePresence>
-          </>
-        )
-       : (
+          </Slider>
+          <AnimatePresence>
+            {bigContentMatch ? (
+              <>
+                <Overlay
+                  onClick={goBackHomt}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                />
+                <BigMovie
+                  layoutId={"search" + String(bigContentMatch.params.contentId)}
+                  scrollY={scrollY.get()}
+                >
+                  {clickContent && (
+                    <>
+                      <BigCover
+                        bgPhoto={makeImagePath(
+                          clickContent.backdrop_path,
+                          "w500"
+                        )}
+                      >
+                        <h2>{clickContent.original_title}</h2>
+                      </BigCover>
+                      <BigOverview>
+                        <h2>{clickContent.overview}</h2>
+                        <p>
+                          <span>⭐{contentDetail?.popularity.toFixed(1)}</span>
+                          <span>{contentDetail?.runtime}min</span>
+                        </p>
+                        <p>
+                          {contentDetail?.genres.map((item) => (
+                            <span key={item.id}>{item.name}</span>
+                          ))}
+                        </p>
+                        <SimilarBox>
+                          {getSimilar?.results.slice(0, 18).map((item) => (
+                            <Similar
+                              variants={SimilarBoxVariants}
+                              initial="normal"
+                              whileHover="hover"
+                              transition={{ type: "tween" }}
+                              bgphoto={makeImagePath(
+                                item.backdrop_path,
+                                "w500"
+                              )}
+                              key={"similar" + String(item.id)}
+                            >
+                              <SimilarInfo variants={similarInfoVariants}>
+                                {item.title}
+                              </SimilarInfo>
+                            </Similar>
+                          ))}
+                        </SimilarBox>
+                      </BigOverview>
+                    </>
+                  )}
+                </BigMovie>
+              </>
+            ) : null}
+          </AnimatePresence>
+        </>
+      ) : (
         <NoticeWrapper>Sorry, We couldn't find</NoticeWrapper>
       )}
     </>

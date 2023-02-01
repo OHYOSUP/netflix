@@ -96,7 +96,7 @@ function Home() {
   };
 
   const goBackHomt = () => {
-    navigate(`/`);
+    navigate(`/Netflix-clone`);
   };
 
   return (

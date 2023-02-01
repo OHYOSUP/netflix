@@ -118,7 +118,7 @@ function Category({ type }: { type: Types }) {
   };
 
   const goBackHomt = () => {
-    navigate(`/`);
+    navigate(`/Netflix-clone`);
   };
 
   const clickedMovie = data?.results.find(

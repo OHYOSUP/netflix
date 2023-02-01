@@ -1,15 +1,10 @@
-import React from "react";
-import { BrowserRouter, Routes, Route, useParams } from "react-router-dom";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Header from "./Components/Header";
 import Home from "./Routes/Home";
 import Search from "./Routes/Search";
 import Tv from "./Routes/Tv";
-import { useRecoilValue } from "recoil";
-import { getKeyword } from "./atom";
-import SearchCategory from "./Components/SearchCategory";
 
 function App() {
-  // const keyword = useRecoilValue(getKeyword);
 
   return (
     <BrowserRouter>

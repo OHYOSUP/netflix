@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import {  useState } from "react";
 import {
   getNowPlayingMovies,
   IGetMoivesResult,
@@ -15,7 +15,7 @@ import { useNavigate, useMatch } from "react-router-dom";
 import makeImagePath from "../Routes/makeImagePath";
 import { IoIosArrowForward, IoIosArrowBack } from "react-icons/io";
 import { IconContext } from "react-icons";
-import { getWindowDimensions, useWindowDimensions } from "./Utils";
+import {  useWindowDimensions } from "./Utils";
 import {
   Slider,
   Row,
